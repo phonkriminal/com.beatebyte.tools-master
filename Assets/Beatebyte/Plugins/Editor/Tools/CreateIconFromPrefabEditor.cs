@@ -14,8 +14,11 @@ namespace BeatebyteToolsEditor
     public class EDSCreateIconFromPrefabEditor : EditorWindow
     {
         private static readonly string IconGUID = "643fff9a5f3ccf94aa0a9320c6ca2dba";
-
         private static readonly string GUISkinGUID = "98de12020fe6aad43a4afcf7464f805a";
+        private static readonly string IconCanvasGUID = "e13d99fe381414c4aa2ac68a615a2164";
+        private static readonly string ItemCameraGUID = "6b96d4a9f99a40b449927b426be259ad";
+        private static readonly string EmptyTextureGUID = "6920c2c072a84704d8e3025edb20cacf";
+        private static readonly string BorderTextureGUID = "ceed8b93ecf77aa48aa29e1431ff422b";
 
 
         /// <summary>
@@ -30,7 +33,7 @@ namespace BeatebyteToolsEditor
         /// <summary>
         /// The es skin.
         /// </summary>
-        private GUISkin esSkin;
+        private GUISkin bteSkin;
 
         /// <summary>
         /// The min rect.
@@ -59,11 +62,17 @@ namespace BeatebyteToolsEditor
         /// <summary>
         /// The invert layers.
         /// </summary>
-        public bool invertLayers = false;
+        [field: SerializeField]
+        public bool InvertLayers { get; set; } = false;
+
+        [field: SerializeField]
+        public bool UseBorders { get; set; } = false;
         /// <summary>
         /// Back ground.
         /// </summary>
         public Sprite _backGround;
+        
+        private Sprite _originalSprite;
         /// <summary>
         /// The camera prefab.
         /// </summary>
@@ -73,9 +82,10 @@ namespace BeatebyteToolsEditor
         /// </summary>
         public GameObject _itemCanvasPrefab;
         /// <summary>
-        /// Empty.
+        /// emptyTexture.
         /// </summary>
-        private Texture2D empty;
+        private Texture2D emptyTexture;
+        private Texture2D borderTexture;
         /// <summary>
         /// The off set.
         /// </summary>
@@ -150,14 +160,16 @@ namespace BeatebyteToolsEditor
         {
             logo = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(IconGUID));
             _logo = ScaleTexture(logo, 48, 48);
-            _itemCanvasPrefab = Resources.Load("Prefabs/IconCanvas") as GameObject;
-            _cameraPrefab = Resources.Load("Prefabs/ItemCamera") as GameObject;
-            empty = Resources.Load("EditorResources/Empty") as Texture2D;
-            _backGround = empty.ToSprite();
+            _itemCanvasPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(IconCanvasGUID));
+            _cameraPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(ItemCameraGUID));
+            emptyTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(EmptyTextureGUID));
+            borderTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(BorderTextureGUID));
+            _backGround = emptyTexture.ToSprite();
+            _originalSprite = _backGround;
             CheckConditions();
         }
 
-        [MenuItem("edeaStudio/Tools/Icon Generator", false, 1)]
+        [MenuItem("Window/Beatebyte Creations/Tools/Icon Generator", false, 1)]
         public static void Init()
         {
             EDSCreateIconFromPrefabEditor window = GetWindow<EDSCreateIconFromPrefabEditor>();
@@ -170,7 +182,6 @@ namespace BeatebyteToolsEditor
             RefreshRenderSize();
             RefreshTexture();
         }
-
         private void Update()
         {
             if (_camera != null)
@@ -201,15 +212,12 @@ namespace BeatebyteToolsEditor
                 _camera.clearFlags = previousClearFlags;
             }
         }
-
         private void RefreshRenderSize()
         {
             string[] screenRes = new string[2] { _itemCanvasPrefab.GetComponent<Canvas>().renderingDisplaySize.y.ToString(), _itemCanvasPrefab.GetComponent<Canvas>().renderingDisplaySize.x.ToString() };
 
             _cameraRenderSize = new Vector2(int.Parse(screenRes[0]), int.Parse(screenRes[1]));
-
         }
-
         private void RefreshTexture()
         {
             //_renderTexture = new RenderTexture((int)_cameraRenderSize.x, (int)_cameraRenderSize.y, 24);
@@ -229,8 +237,6 @@ namespace BeatebyteToolsEditor
             isCamera = _cameraPrefab;
             isCanvas = _itemCanvasPrefab;
         }
-
-
         public Sprite GetIcon()
         {
             Renderer renderer = charObj.transform.GetComponentInChildren<Renderer>();
@@ -273,10 +279,8 @@ namespace BeatebyteToolsEditor
             return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0, 0));
 
         }
-
-
         private void OnGUI()
-        {
+        {            
 
             Event e = Event.current;
             if (e.isScrollWheel && canSave)
@@ -300,159 +304,199 @@ namespace BeatebyteToolsEditor
                 }
 
             }
-            logo = Resources.Load("UI/Images/icon_v2") as Texture2D;
+
+            logo = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(IconGUID));
             _logo = ScaleTexture(logo, 48, 48);
 
-
-            if (!esSkin)
+            if (!bteSkin)
             {
-                esSkin = Resources.Load("eSkin") as GUISkin;
+                bteSkin = AssetDatabase.LoadAssetAtPath<GUISkin>(AssetDatabase.GUIDToAssetPath(GUISkinGUID));
             }
 
-            GUI.skin = esSkin;
+            GUI.skin = bteSkin;
+
+            GUIStyle labelStyle = new GUIStyle(bteSkin.GetStyle("bteLabelTex"));
+            GUIStyle labelRightStyle = new GUIStyle(bteSkin.GetStyle("bteLabelTexRight"));
+            GUIStyle textStyle = new GUIStyle(bteSkin.GetStyle("bteTextfield"));
+            GUIStyle intStyle = new GUIStyle(bteSkin.GetStyle("intfield"));
+            GUIStyle titleStyle = new GUIStyle(bteSkin.GetStyle("bteTitle"));
+            GUIStyle textureBoxStyle = new GUIStyle(bteSkin.GetStyle("bteTextureBox"));
+
             //Texture2D preview;
 
             this.minSize = minRect;
             this.maxSize = minRect;
             this.titleContent = new GUIContent("Icon Prefab Creator", null, "Icon Prefab Creator");
-            GUILayout.BeginVertical("ICON PREFAB EDITOR", "window");
-            GUILayout.Label(_logo, GUILayout.MaxHeight(48));
 
-            //            GUILayout.Label(_logo, GUILayout.MaxHeight(25));
-            /*GUIContent content = new();
-            content.image = _logo;
-            content.tooltip = "EDS Icon Prefab editor.";
-            GUILayout.Label(content, "titlelabel");*/
-
-            GUILayout.Space(5);
+            GUILayout.BeginVertical("       ICON PREFAB EDITOR", titleStyle);
+            {
+                GUILayout.Label(logo, GUILayout.MaxHeight(48));
+            }
             GUILayout.EndVertical();
 
-            GUILayout.BeginVertical("", "window");
 
-
-            EditorGUILayout.Separator();
-
-            if (checkAgain) CheckConditions();
-
-
-            GUILayout.BeginVertical("box");
-
-            if (!charObj)
+            GUILayout.BeginVertical("", textureBoxStyle);
             {
-                EditorGUILayout.HelpBox("Select FBX model to generate Icon!", MessageType.Info);
-                checkAgain = true;
-                canSave = false;
-            }
-            else if (!isCamera)
-            {
-                EditorGUILayout.HelpBox("You have to assign the camera prefab. /n You find in Resources/Prefabs", MessageType.Info);
-                checkAgain = true;
-                canSave = false;
-            }
-            else if (!isCanvas)
-            {
-                EditorGUILayout.HelpBox("You have to assign the canvas prefab. /n You find in Resources/Prefabs", MessageType.Info);
-                checkAgain = true;
-                canSave = false;
-            }
 
-            charObj = EditorGUILayout.ObjectField("Your Model ", charObj, typeof(GameObject), true, GUILayout.ExpandWidth(true)) as GameObject;
-            _cameraPrefab = EditorGUILayout.ObjectField("Camera Prefab", _cameraPrefab, typeof(GameObject), true, GUILayout.ExpandWidth(true)) as GameObject;
-            _itemCanvasPrefab = EditorGUILayout.ObjectField("Canvas Prefab ", _itemCanvasPrefab, typeof(GameObject), true, GUILayout.ExpandWidth(true)) as GameObject;
-            GUI.skin = null;
-            _backGround = EditorGUILayout.ObjectField("Background Image", _backGround, typeof(Sprite), true, GUILayout.ExpandWidth(true)) as Sprite;
-            GUI.skin = esSkin;
-            offSet = EditorGUILayout.IntField("Icon Offset ", offSet, GUILayout.ExpandWidth(true));
-            invertLayers = EditorGUILayout.Toggle("Invert Image Layers", invertLayers, "toggle");
+                EditorGUILayout.Separator();
 
-            if (offSet < 0)
-            {
-                EditorGUILayout.HelpBox("The Icon OffSet value can't be negative.", MessageType.Warning);
-                offSet = 0;
-            }
-            else if (offSet >= 32)
-            {
-                EditorGUILayout.HelpBox("The Icon OffSet value reaches the maximum value.", MessageType.Warning);
-                offSet = 32;
-            }
-            EditorGUILayout.Space();
+                if (checkAgain) CheckConditions();
 
-            if (GUI.changed && charObj != null)
-            {
-                humanoidpreview = UnityEditor.Editor.CreateEditor(charObj);
-            }
 
-            GUILayout.EndVertical();
-
-            if (charObj != null)
-            {
-                GUILayout.BeginVertical("window");
-                if (!canSave) DrawHumanoidPreview();
-                else DrawCameraPreview();
-                GUILayout.EndVertical();
-
-                GUILayout.Space(10);
-
-                EditorGUI.BeginChangeCheck();
-                sizeIndex = EditorGUILayout.Popup(sizeIndex, imageSize);
-
-                switch (sizeIndex)
+                GUILayout.BeginVertical();
                 {
-                    case 0:
-                        iconSize = 64;
-                        break;
-                    case 1:
-                        iconSize = 128;
-                        break;
-                    case 2:
-                        iconSize = 256;
-                        break;
-                    case 3:
-                        iconSize = 512;
-                        break;
-                    case 4:
-                        iconSize = 1024;
-                        break;
-                }
 
-                if (EditorGUI.EndChangeCheck())
-                {
-                    RefreshTexture();
-                }
-
-
-                GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-
-                if (isCamera && isCanvas && !canSave)
-                {
-                    if (GUILayout.Button("Set Up"))
+                    if (!charObj)
                     {
-                        ShowCameraRender();
+                        EditorGUILayout.HelpBox("Select FBX model to generate Icon!", MessageType.Info);
+                        checkAgain = true;
+                        canSave = false;
+                    }
+                    else if (!isCamera)
+                    {
+                        EditorGUILayout.HelpBox("You have to assign the camera prefab. /n You find in Resources/Prefabs", MessageType.Info);
+                        checkAgain = true;
+                        canSave = false;
+                    }
+                    else if (!isCanvas)
+                    {
+                        EditorGUILayout.HelpBox("You have to assign the canvas prefab. /n You find in Resources/Prefabs", MessageType.Info);
+                        checkAgain = true;
+                        canSave = false;
+                    }
+
+                    charObj = EditorGUILayout.ObjectField("Your Model ", charObj, typeof(GameObject), true, GUILayout.ExpandWidth(true)) as GameObject;
+                    _cameraPrefab = EditorGUILayout.ObjectField("Camera Prefab", _cameraPrefab, typeof(GameObject), true, GUILayout.ExpandWidth(true)) as GameObject;
+                    _itemCanvasPrefab = EditorGUILayout.ObjectField("Canvas Prefab ", _itemCanvasPrefab, typeof(GameObject), true, GUILayout.ExpandWidth(true)) as GameObject;
+                    GUI.skin = null;
+                    EditorGUI.BeginChangeCheck();
+                    _backGround = EditorGUILayout.ObjectField("Background Image", _backGround, typeof(Sprite), true, GUILayout.ExpandWidth(true)) as Sprite;
+                    if (EditorGUI.EndChangeCheck() && !UseBorders)
+                    {
+                        _originalSprite = _backGround;
+                    }
+                    else if ( EditorGUI.EndChangeCheck() && UseBorders)
+                    {
+                        _backGround = borderTexture.ToSprite();    
+                    }
+
+                    GUI.skin = bteSkin;
+                    EditorGUI.BeginChangeCheck();
+                    UseBorders = EditorGUILayout.Toggle("Use borders", UseBorders, "toggle");
+                    if (EditorGUI.EndChangeCheck()) 
+                    {                        
+                        _backGround = UseBorders ? borderTexture.ToSprite() : _originalSprite;                       
+                    }
+
+                    EditorGUILayout.Separator();
+                    if (GUILayout.Button("Set Empty Background Texture"))
+                    {
+                        UseBorders = false;
+                        _backGround = emptyTexture.ToSprite();
+                        _originalSprite = _backGround;
+                    }
+
+                    offSet = EditorGUILayout.IntField("Icon Offset ", offSet, GUILayout.ExpandWidth(true));
+                    InvertLayers = EditorGUILayout.Toggle("Invert Image Layers", InvertLayers, "toggle");
+
+                    if (offSet < 0)
+                    {
+                        EditorGUILayout.HelpBox("The Icon OffSet value can't be negative.", MessageType.Warning);
+                        offSet = 0;
+                    }
+                    else if (offSet >= 32)
+                    {
+                        EditorGUILayout.HelpBox("The Icon OffSet value reaches the maximum value.", MessageType.Warning);
+                        offSet = 32;
+                    }
+                    EditorGUILayout.Space();
+
+                    /////////////////////////////////////PROBLEMA ////////////////////////////////////
+
+                    if (GUI.changed && charObj != null)
+                    {
+                        humanoidpreview = UnityEditor.Editor.CreateEditor(charObj);
                     }
                 }
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
+                GUILayout.EndVertical();
 
-                GUILayout.FlexibleSpace();
-                iconName = EditorGUILayout.TextField("Icon Name", iconName);
-
-                if (iconName is null || iconName.Trim().Length == 0)
+                if (charObj != null)
                 {
-                    EditorGUILayout.Separator();
-                    EditorGUILayout.HelpBox("You must assign a name to the icon file", MessageType.Info);
-                }
-                if (canSave)
-                {
-                    if (GUILayout.Button("Create Icon"))
+                    GUILayout.BeginVertical(textureBoxStyle);
                     {
-                        CreateIcon();
+                        if (!canSave)
+                        {
+                            DrawHumanoidPreview();
+                        }
+                        else
+                        {
+                            DrawCameraPreview();
+                        }
+                    }
+                    GUILayout.EndVertical();
+
+                    GUILayout.Space(10);
+
+                    EditorGUI.BeginChangeCheck();
+                    sizeIndex = EditorGUILayout.Popup(sizeIndex, imageSize);
+
+                    switch (sizeIndex)
+                    {
+                        case 0:
+                            iconSize = 64;
+                            break;
+                        case 1:
+                            iconSize = 128;
+                            break;
+                        case 2:
+                            iconSize = 256;
+                            break;
+                        case 3:
+                            iconSize = 512;
+                            break;
+                        case 4:
+                            iconSize = 1024;
+                            break;
+                    }
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        RefreshTexture();
+                    }
+
+
+                    GUILayout.BeginHorizontal();
+                    {
+
+                        if (isCamera && isCanvas && !canSave)
+                        {
+                            if (GUILayout.Button("Set Up"))
+                            {
+                                ShowCameraRender();
+                            }
+                        }
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUI.SetNextControlName("IconText");
+                    iconName = EditorGUILayout.TextField("Icon Name", iconName);
+
+                    if (iconName is null || iconName.Trim().Length == 0)
+                    {
+                        EditorGUILayout.Separator();
+                        EditorGUILayout.HelpBox("You must assign a name to the icon file", MessageType.Info);
+                    }
+                    if (canSave)
+                    {
+                        if (GUILayout.Button("Create Icon"))
+                        {
+                            CreateIcon();
+                        }
                     }
                 }
             }
             GUILayout.EndVertical();
         }
-
         public virtual void UpdateCameraSize(Vector2 cameraSize)
         {
             cameraSize = cameraSize.normalized * 0.01f;
@@ -469,7 +513,6 @@ namespace BeatebyteToolsEditor
             _itemCanvas = InstantiateNewObject(_itemCanvasPrefab);
             canSave = true;
         }
-
         public virtual void CreateIcon()
         {
             switch (sizeIndex)
@@ -504,11 +547,12 @@ namespace BeatebyteToolsEditor
             Image sourceImage2 = imageModel.AddComponent<Image>();
             sourceImage2.sprite = GetIcon();
             imageModel.transform.SetParent(imageBG.transform, false);
-            if (_backGround && !invertLayers) SaveIconAsset(sourceImage.sprite.ConvertSpriteToTexture(), sourceImage2.sprite.ConvertSpriteToTexture(), iconSize);
-            else if (_backGround && invertLayers) SaveIconAsset(sourceImage2.sprite.ConvertSpriteToTexture(), sourceImage.sprite.ConvertSpriteToTexture(), iconSize);
-            else if (!_backGround) SaveIconAsset(empty, sourceImage2.sprite.ConvertSpriteToTexture(), iconSize);
-        }
+            if (_backGround && !InvertLayers) SaveIconAsset(sourceImage.sprite.ConvertSpriteToTexture(), sourceImage2.sprite.ConvertSpriteToTexture(), iconSize);
+            else if (_backGround && InvertLayers) SaveIconAsset(sourceImage2.sprite.ConvertSpriteToTexture(), sourceImage.sprite.ConvertSpriteToTexture(), iconSize);
+            else if (!_backGround) SaveIconAsset(emptyTexture, sourceImage2.sprite.ConvertSpriteToTexture(), iconSize);
 
+            CleanScene();
+        }
         public virtual void SaveIconAsset(Texture2D bottom, Texture2D top, int iconSize)
         {
 
@@ -528,11 +572,28 @@ namespace BeatebyteToolsEditor
                 _renderTexture.DiscardContents();
                 _renderTexture = null;
             }
+            if (_itemCamera != null)
+            {
+                GameObject tempCamera = GameObject.Find(_itemCamera.gameObject.name);
+                DestroyImmediate(tempCamera);
+                _itemCamera = null;
+            }
+            if (_itemCanvas != null)
+            {
+                GameObject tempCanvas = GameObject.Find(_itemCanvas.gameObject.name);
+                DestroyImmediate(tempCanvas);
+                _itemCanvas = null;
+            }
 
-            if (_itemCanvas) DestroyImmediate(_itemCanvas.gameObject);
-            if (_itemCamera) DestroyImmediate(_itemCamera.gameObject);
+            iconName = string.Empty;
+            canSave = false;
+            Repaint();
+
+            GUI.UnfocusWindow();
+
+            
+
         }
-
         private void SaveTexture(Texture2D texture)
         {
             byte[] bytes = texture.EncodeToPNG();
@@ -576,7 +637,6 @@ namespace BeatebyteToolsEditor
                 humanoidpreview.OnInteractivePreviewGUI(GUILayoutUtility.GetRect(100, 200), "window");
             }
         }
-
         public virtual void DrawCameraPreview()
         {
             _camera = _itemCamera;

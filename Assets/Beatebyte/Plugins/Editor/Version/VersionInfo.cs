@@ -9,7 +9,7 @@ namespace BeatebyteToolsEditor
     public class VersionInfo 
     {
         public const byte Major = 1;
-        public const byte Minor = 9;
+        public const byte Minor = 0;
         public const byte Release = 0;
         public static byte Revision = 0;
 

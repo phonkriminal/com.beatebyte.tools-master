@@ -23,15 +23,15 @@ namespace BeatebyteToolsEditor
         
         private static readonly string IconGUID = "643fff9a5f3ccf94aa0a9320c6ca2dba";
         private static readonly string ChangeLogGUID = "e52c83e772ce9fb4e879ba0dccd73e44";
-        
+
 
         //private static readonly string ResourcesGUID = "c0a0a980c9ba86345bc15411db88d34f";
 
-        public static readonly string ChangelogURL = "https://github.com/phonkriminal/com.edeastudio.tools/main/BTEchangelog.json";
-        private static readonly string ManualURL = "https://github.com/phonkriminal/com.edeastudio.tools/wiki/Quick-Start";
+        public static readonly string ChangelogURL = "http://beatebyte.com/BTEchangelog.json";
+        private static readonly string ManualURL = "http://beatebyte.com/wiki/Quick-Start";
 
 
-        private static readonly string SiteURL = "https://github.com/phonkriminal/com.edeastudio.tools";
+        private static readonly string SiteURL = "http://beatebyte.com";
 
         private static readonly GUIContent UpdateTitle = new GUIContent("Latest Update", "Check the lastest additions, improvements and bug fixes done to BTE");
         private static readonly GUIContent BTETitle = new GUIContent("Beatebyte Editor Tools", "Are you using the latest version? Now you know");
@@ -146,8 +146,7 @@ namespace BeatebyteToolsEditor
                 {
 
                     var temp = ChangeLogInfo.CreateFromJSON(www.downloadHandler.text);
-                    Debug.Log(temp.Version + " " + temp.LastUpdate);
-
+                    Debug.Log(temp);
                     if (temp != null && temp.Version >= m_changeLog.Version)
                     {
                         m_changeLog = temp;
@@ -160,8 +159,6 @@ namespace BeatebyteToolsEditor
                     int revision = version - (version / 100) * 100;
 
                     m_newVersion = major + "." + minor + "." + release + (revision > 0 ? "." + revision : "");
-
-                    Debug.Log(m_newVersion);
 
                     Repaint();
 
@@ -230,38 +227,6 @@ namespace BeatebyteToolsEditor
                     if (GUILayout.Button(Manualbutton, m_buttonStyle))
                         Application.OpenURL(ManualURL);
 
-
-                    GUILayout.Label("TEST", m_labelStyle);
-                    if (GUILayout.Button("TEST", m_buttonStyle))
-                    {
-                        StartBackgroundTask(StartRequest(ChangelogURL, () =>
-                        {
-
-                            var temp = ChangeLogInfo.CreateFromJSON(www.downloadHandler.text);
-                            Debug.Log(temp.Version + " " + temp.LastUpdate);
-
-                            if (temp != null && temp.Version >= m_changeLog.Version)
-                            {
-                                Debug.Log("NOT NULL");
-
-                                m_changeLog = temp;
-                            }
-
-                            int version = m_changeLog.Version;
-                            int major = version / 10000;
-                            int minor = version / 1000 - major * 10;
-                            int release = version / 100 - (version / 1000) * 10;
-                            int revision = version - (version / 100) * 100;
-
-                            m_newVersion = major + "." + minor + "." + release + (revision > 0 ? "." + revision : "");
-
-                            Debug.Log(m_newVersion);
-
-                            Repaint();
-
-                        }));
-                    }
-
                 }
                 EditorGUILayout.EndVertical();
                 // Right Column
@@ -279,7 +244,6 @@ namespace BeatebyteToolsEditor
 
                         GUILayout.Label("Installed Version: " + VersionInfo.StaticToString());
 
-                        Debug.Log("CHECK " + (m_changeLog.Version > VersionInfo.FullNumber) + m_changeLog.Version + " " + VersionInfo.FullNumber);
                         if (m_changeLog.Version > VersionInfo.FullNumber)
                         {
                             var cache = GUI.color;

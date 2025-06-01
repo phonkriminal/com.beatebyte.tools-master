@@ -25,7 +25,7 @@ namespace BeatebyteToolsEditor
         [MenuItem("Window/Beatebyte Creations/Manual", false, 2000)]
         static void OpenManual()
         {
-            Application.OpenURL("https://github.com/phonkriminal/com.edeastudio.tools/wiki/Quick-Start");
+            Application.OpenURL("http://beatebyte.com/wiki/Quick-Start.php");
         }
         private void OnEnable()
         {

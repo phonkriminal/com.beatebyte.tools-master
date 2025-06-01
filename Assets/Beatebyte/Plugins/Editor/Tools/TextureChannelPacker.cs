@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using BeatebyteToolsEditor.Shared;
-using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using static BeatebyteToolsEditor.Shared.Util;
