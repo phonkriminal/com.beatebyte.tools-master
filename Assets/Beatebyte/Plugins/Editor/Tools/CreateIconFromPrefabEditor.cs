@@ -413,10 +413,10 @@ namespace BeatebyteToolsEditor
 
                     /////////////////////////////////////PROBLEMA ////////////////////////////////////
 
-                    if (GUI.changed && charObj != null)
+                   /* if (GUI.changed && charObj != null)
                     {
                         humanoidpreview = UnityEditor.Editor.CreateEditor(charObj);
-                    }
+                    }*/
                 }
                 GUILayout.EndVertical();
 
@@ -610,9 +610,8 @@ namespace BeatebyteToolsEditor
             System.IO.File.WriteAllBytes(path, bytes);
 
             Debug.Log(bytes.Length / 1024 + "Kb was saved as: " + path);
-#if UNITY_EDITOR
-            UnityEditor.AssetDatabase.Refresh();
-#endif
+            AssetDatabase.Refresh();
+
         }
         private GameObject InstantiateNewObject(GameObject selected)
         {

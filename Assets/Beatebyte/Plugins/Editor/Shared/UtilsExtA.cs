@@ -1,6 +1,6 @@
 using System;
-using UnityEditor;
 using UnityEngine;
+using UnityEditor;
 
 namespace BeatebyteToolsEditor.Shared
 {
@@ -42,7 +42,15 @@ namespace BeatebyteToolsEditor.Shared
             EditorWindow.DestroyImmediate(editor);
             return tex;
         }
-
+        /// <summary>
+        /// Configures the transparency settings of a material.
+        /// </summary>
+        /// <remarks>When transparency is enabled, the material's rendering mode is adjusted to support
+        /// transparency, including changes to blending, shadow casting, and render queue settings. Disabling
+        /// transparency restores the material to an opaque rendering mode.</remarks>
+        /// <param name="material">The material to modify. Cannot be <see langword="null"/>.</param>
+        /// <param name="enabled"><see langword="true"/> to enable transparency for the material; otherwise, <see langword="false"/> to
+        /// disable it.</param>
         public static void SetMaterialTransparent(Material material, bool enabled)
         {
             material.SetFloat("_Surface", enabled ? MATERIAL_TRANSPARENT : MATERIAL_OPAQUE);
@@ -52,6 +60,42 @@ namespace BeatebyteToolsEditor.Shared
             material.SetFloat("_SrcBlend", enabled ? 5 : 1);
             material.SetFloat("_ZWrite", enabled ? 0 : 1);
         }
+        /// <summary>
+        /// Configures the transparency settings of a material.
+        /// </summary>
+        /// <remarks>When transparency is enabled, the material's blending mode, ZWrite settings, and
+        /// render queue  are adjusted to support alpha blending. Additionally, the material's color alpha is set to 0.1
+        /// to ensure partial transparency. When transparency is disabled, the material is restored to  opaque rendering
+        /// settings.</remarks>
+        /// <param name="material">The material to modify. Cannot be <see langword="null"/>.</param>
+        /// <param name="enabled">A value indicating whether transparency should be enabled.  If <see langword="true"/>, the material is set
+        /// to render with transparency;  otherwise, it is set to render as opaque.</param>
+        public static void SetMaterialTransparentEx(Material material, bool enabled)
+        {
+            if (enabled)
+            {
+                material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                material.SetInt("_ZWrite", 0);
+                material.DisableKeyword("_ALPHATEST_ON");
+                material.DisableKeyword("_ALPHABLEND_ON");
+                material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+                material.renderQueue = 3000;
+
+//                material.color = new Color(material.color.r, material.color.g, material.color.b, 0.1f);
+            }
+            else 
+            {
+                material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                material.SetInt("_ZWrite", 1);
+                material.DisableKeyword("_ALPHATEST_ON");
+                material.DisableKeyword("_ALPHABLEND_ON");
+                material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                material.renderQueue = -1;
+            }
+        }
+
         public static Texture2D AlphaBlend(this Texture2D aBottom, Texture2D aTop)
         {
             if (aBottom.width != aTop.width || aBottom.height != aTop.height)

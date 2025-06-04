@@ -11,15 +11,17 @@ namespace BeatebyteToolsEditor.Attributes
     [CustomPropertyDrawer(typeof(eButtonAttribute))]
     public class SingletonEditor : DecoratorDrawer
     {
+        private static readonly string GUISkinGUID = "98de12020fe6aad43a4afcf7464f805a";
+
         /// <summary>
         /// On GUI.
         /// </summary>
         /// <param name="position">The position.</param>
         public override void OnGUI(Rect position)
         {
-            GUISkin skin = Resources.Load("eSkin") as GUISkin;
+            GUISkin bteSkin = AssetDatabase.LoadAssetAtPath<GUISkin>(AssetDatabase.GUIDToAssetPath(GUISkinGUID));
 
-            GUI.skin = skin;
+            GUI.skin = bteSkin;
 
             eButtonAttribute target = (eButtonAttribute)attribute;
 
@@ -54,6 +56,7 @@ namespace BeatebyteToolsEditor.Attributes
         void ExecuteFunction(eButtonAttribute target)
         {
             if (target.type == null) return;
+            if (Selection.activeGameObject == null) return;
             UnityEngine.Object theObject = Selection.activeGameObject.GetComponent(target.type) as UnityEngine.Object;
 
             MethodInfo tMethod = theObject.GetType().GetMethods().FirstOrDefault(method => method.Name == target.function

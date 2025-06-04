@@ -8,7 +8,7 @@ namespace BeatebyteToolsEditor
     /// <summary>
     /// The EDS remove all components.
     /// </summary>
-    public class EDSRemoveAllComponents : EditorWindow
+    public class RemoveAllComponents : EditorWindow
     {
 
         private static readonly string IconGUID = "643fff9a5f3ccf94aa0a9320c6ca2dba";
@@ -66,7 +66,7 @@ namespace BeatebyteToolsEditor
         [MenuItem("GameObject/Remove All Components",isValidateFunction: false, 12)]
         public static void ShowWindow()
         {
-            GetWindow<EDSRemoveAllComponents>();
+            GetWindow<RemoveAllComponents>();
         }
 
         /// <summary>
@@ -146,17 +146,18 @@ namespace BeatebyteToolsEditor
 
 
             GUILayout.BeginVertical("", textureBoxStyle);
-            {   //, layoutOptions);
+            {   
 
                 if (checkAgain) CheckConditions();
 
                 GUILayoutOption[] layoutOptionsBox = new GUILayoutOption[]
                 {
                 GUILayout.Width(minRect.x -20),
-                GUILayout.Height(minRect.y - 20)
+                GUILayout.Height(minRect.y - 20),
+                GUILayout.ExpandWidth(true)
                 };
 
-                GUILayout.BeginVertical(textureBoxStyle, layoutOptionsBox);
+                GUILayout.BeginVertical(textureBoxStyle);
                 {
 
                     if (!gameObject)
@@ -179,7 +180,7 @@ namespace BeatebyteToolsEditor
                 GUILayout.EndVertical();
 
 
-                GUILayout.BeginVertical("List of Components", textureBoxStyle, layoutOptionsBox);
+                GUILayout.BeginVertical("List of Components", textureBoxStyle);
                 {
                     GUILayout.Space(25);
 
@@ -200,6 +201,7 @@ namespace BeatebyteToolsEditor
                             }
 
                             string[] options = componentsList.ToArray();
+                            GUILayout.Space(5);
                             index = EditorGUILayout.Popup(index, options);
 
                             if (GUILayout.Button("Clean", layoutOptionsBox))

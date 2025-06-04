@@ -10,6 +10,7 @@ namespace BeatebyteToolsEditor.Attributes
 
     public class eLabelAttributeDrawer : PropertyDrawer
     {
+        private static readonly string GUISkinGUID = "98de12020fe6aad43a4afcf7464f805a";
         /// <summary>
         /// On GUI.
         /// </summary>
@@ -17,14 +18,14 @@ namespace BeatebyteToolsEditor.Attributes
         /// <param name="property">The property.</param>
         /// <param name="label">The label.</param>
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {            
-            var skin = Resources.Load("eSkin") as GUISkin;
-            GUI.skin = skin;
+        {
+            GUISkin bteSkin = AssetDatabase.LoadAssetAtPath<GUISkin>(AssetDatabase.GUIDToAssetPath(GUISkinGUID));
+            GUI.skin = bteSkin;
             var style = new GUIStyle(EditorStyles.label);
 
             eLabelAttribute elabel = (eLabelAttribute)attribute;
 
-            style = string.IsNullOrEmpty(elabel.style) ? skin.label : skin.GetStyle(elabel.style);
+            style = string.IsNullOrEmpty(elabel.style) ? bteSkin.label : bteSkin.GetStyle(elabel.style);
 
             if (property.propertyType == SerializedPropertyType.String)
             {
