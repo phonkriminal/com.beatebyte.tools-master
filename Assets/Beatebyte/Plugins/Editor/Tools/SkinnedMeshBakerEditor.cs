@@ -80,7 +80,7 @@ namespace BeatebyteToolsEditor
         /// <summary>
         /// Show the window.
         /// </summary>
-        [MenuItem("Window/Beatebyte Creations/Tools/Mesh Baker", false, 2)]
+        [MenuItem("Window/Beatebyte Creations/Tools/Mesh Baker", false, 1)]
         
 
         public static void ShowWindow()

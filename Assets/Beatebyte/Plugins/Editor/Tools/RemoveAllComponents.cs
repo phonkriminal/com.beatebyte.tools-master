@@ -62,13 +62,19 @@ namespace BeatebyteToolsEditor
         /// <summary>
         /// Show the window.
         /// </summary>
-        [MenuItem("Window/Beatebyte Creations/Tools/Remove All Components", false, 1)]
-        [MenuItem("GameObject/Remove All Components",isValidateFunction: false, 12)]
+        [MenuItem("Window/Beatebyte Creations/Tools/Remove All Components", false, 2)]
+        [MenuItem("GameObject/Remove All Components",isValidateFunction: false, 13)]
         public static void ShowWindow()
         {
             GetWindow<RemoveAllComponents>();
         }
 
+        [MenuItem("Window/Beatebyte Creations/Tools/Remove All Components", true)]
+        [MenuItem("GameObject/Remove All Components", isValidateFunction: true)]
+        static bool ValidateSelection()
+        {
+            return Selection.gameObjects.Length > 0;
+        }
         /// <summary>
         /// On enable.
         /// </summary>
@@ -76,7 +82,7 @@ namespace BeatebyteToolsEditor
         {
             logo = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(IconGUID));
             _logo = ScaleTexture(logo, 50, 50);
-            CheckConditions();
+            //CheckConditions();
         }
 
 
