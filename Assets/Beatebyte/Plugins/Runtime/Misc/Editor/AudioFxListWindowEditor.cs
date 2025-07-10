@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using static BeatebyteToolsEditor.Shared.Util;
 
@@ -9,6 +9,7 @@ namespace BeatebyteToolsEditor.Runtime
     {
         private static readonly string IconGUID = "1e22269ce2f8f55408a38b7fcb64832b";
         private static readonly string GUISkinGUID = "98de12020fe6aad43a4afcf7464f805a";
+        private Vector2 scrollPos;
 
         GUISkin bteSkin;
         public static void Open(AudioFXList dataObject)
@@ -16,7 +17,7 @@ namespace BeatebyteToolsEditor.Runtime
             AudioFxListWindowEditor window = GetWindow<AudioFxListWindowEditor>("Audio FX List Editor");
             window.serializedObject = new SerializedObject(dataObject);
         }
-
+       
         private void OnGUI()
         {
             var logo = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(IconGUID));
@@ -39,17 +40,26 @@ namespace BeatebyteToolsEditor.Runtime
             GUILayout.Label(content, titleStyle);
             GUILayout.EndHorizontal();
 
-            EditorGUILayout.BeginVertical();
+            EditorGUILayout.BeginVertical("box");
             currentProperty = serializedObject.FindProperty("audioElements");
             if (currentProperty == null)
             {
                 Debug.LogError("currentProperty is null");
                 return;
             }
-            DrawSelectedPropertyPanel();
+            //DrawSelectedPropertyPanel();
+            serializedObject.Update();
+            scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
+            EditorGUILayout.LabelField("🎧 Audio Configurazione", EditorStyles.boldLabel);
+            EditorGUILayout.Space();
 
+            //DrawField("globalVolumeLabel", false);
+            DrawField("audioElements", false); // La tua lista scrollabile
+            EditorGUILayout.EndScrollView(); // ⬅️ FINE scroll
+
+            serializedObject.ApplyModifiedProperties();
             EditorGUILayout.EndVertical();
-            Apply();
+            //Apply();
 
         }
         void DrawSelectedPropertyPanel()

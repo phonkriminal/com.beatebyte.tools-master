@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: NewFXAudioList
   m_EditorClassIdentifier: 
   audioElements:
-  - category: 2
-    name: SoundTrack01
-    clip: {fileID: 8300000, guid: 1cd17840358c04a1493e538596218d96, type: 3}
+  - category: 0
+    name: 
+    clip: {fileID: 8300000, guid: 886b429b9079c4ee9b6c012bf9e6f9ca, type: 3}

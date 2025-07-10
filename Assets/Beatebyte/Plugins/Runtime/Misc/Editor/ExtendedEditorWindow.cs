@@ -1,4 +1,6 @@
+﻿using System.Collections.Generic;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace BeatebyteToolsEditor.Runtime
@@ -10,6 +12,8 @@ namespace BeatebyteToolsEditor.Runtime
 
         private string selectedPropertyPath;
         protected SerializedProperty selectedProperty;
+        protected Dictionary<string, ReorderableList> reorderableLists = new();
+
         protected void DrawProperty(SerializedProperty prop, bool drawChildren)
         {
             string lastPropPath = string.Empty;
@@ -59,16 +63,71 @@ namespace BeatebyteToolsEditor.Runtime
 
         protected void DrawField(string propName, bool relative)
         {
+            /* if (relative && currentProperty != null)
+             {
+                 EditorGUILayout.PropertyField(currentProperty.FindPropertyRelative(propName), true);
+             }
+             else if (serializedObject != null)
+             {
+                 EditorGUILayout.PropertyField(serializedObject.FindProperty(propName), true);
+             }*/
+            SerializedProperty prop = null;
+
             if (relative && currentProperty != null)
             {
-                EditorGUILayout.PropertyField(currentProperty.FindPropertyRelative(propName), true);
+                prop = currentProperty.FindPropertyRelative(propName);
             }
             else if (serializedObject != null)
             {
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(propName), true);
+                prop = serializedObject.FindProperty(propName);
+            }
+
+            if (prop == null)
+            {
+                EditorGUILayout.HelpBox($"⚠️ Proprietà '{propName}' non trovata!", MessageType.Warning);
+                return;
+            }
+
+            if (prop.isArray && prop.propertyType != SerializedPropertyType.String)
+            {
+                DrawReorderableList(propName, prop);
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(prop, includeChildren: true);
             }
         }
+        private void DrawReorderableList(string key, SerializedProperty prop)
+        {
+            if (!reorderableLists.ContainsKey(key))
+            {
+                var list = new ReorderableList(prop.serializedObject, prop, true, true, true, true);
 
+                list.drawHeaderCallback = rect =>
+                {
+                    EditorGUI.LabelField(rect, ObjectNames.NicifyVariableName(prop.name));
+                };
+
+                list.drawElementCallback = (rect, index, isActive, isFocused) =>
+                {
+                    var element = prop.GetArrayElementAtIndex(index);
+                    rect.y += 2;
+
+                    EditorGUI.PropertyField(rect, element, GUIContent.none, includeChildren: true);
+                };
+
+                list.elementHeightCallback = index =>
+                {
+                    var element = prop.GetArrayElementAtIndex(index);
+                    return EditorGUI.GetPropertyHeight(element, true) + 4;
+                };
+
+                reorderableLists[key] = list;
+            }
+
+            reorderableLists[key].DoLayoutList();
+        }
+       
         protected void Apply()
         {
             serializedObject.ApplyModifiedProperties();
