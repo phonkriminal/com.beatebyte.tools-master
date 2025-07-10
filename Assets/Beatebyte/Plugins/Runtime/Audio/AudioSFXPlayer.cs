@@ -2,6 +2,8 @@ using BeatebyteToolsEditor.Attributes;
 using BeatebyteToolsEditor.Utils;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Audio;
+
 #if C_RENAME_IS_PRESENT
 using Sisus.ComponentNames;
 #endif
@@ -20,6 +22,8 @@ namespace BeatebyteToolsEditor.Components
         [Space(10)]
         [SerializeField]
         private AudioFXList audioList;
+        [SerializeField] AudioMixer mixer;
+        [SerializeField] AudioMixerGroup[] mixerGroups;
         /// <summary>
         /// The instance.
         /// </summary>
@@ -27,7 +31,7 @@ namespace BeatebyteToolsEditor.Components
         /// <summary>
         /// Gets the instance.
         /// </summary>
-        public static AudioSFXPlayer Instance { get => _instance; }
+        public static AudioSFXPlayer Instance => _instance;
         /// <summary>
         /// Gets or sets the array of <see cref="AudioSource"/> objects.
         /// </summary>
@@ -45,8 +49,9 @@ namespace BeatebyteToolsEditor.Components
         private AudioSource audioSourceMusic;
         private AudioSource audioSourceOther;
 
+
         [field: SerializeField, Tooltip("Mantain the instance after change scene as well")]
-        public new bool  DontDestroyOnLoad { get; set; } = true;
+        public bool  UseDontDestroyOnLoad { get; set; } = true;
 
         private void OnValidate()
         {
@@ -67,7 +72,7 @@ namespace BeatebyteToolsEditor.Components
 
             _instance = this;
            
-            if (Application.isPlaying && DontDestroyOnLoad) DontDestroyOnLoad(gameObject);            
+            if (Application.isPlaying && UseDontDestroyOnLoad) DontDestroyOnLoad(gameObject);            
         }
 
         /// <summary>
@@ -114,7 +119,7 @@ namespace BeatebyteToolsEditor.Components
         /// <param name="clip">The audio clip to play. Cannot be null.</param>
         /// <param name="loop">A value indicating whether the audio clip should loop. <see langword="true"/> to loop the clip; otherwise,
         /// <see langword="false"/>.</param>
-        public void PlayOther(AudioClip clip, bool loop)
+        public void PlayOther(AudioClip clip, bool loop = false)
         {
             if (audioSourceOther == null) { return; }
             audioSourceOther.Stop();
@@ -131,7 +136,7 @@ namespace BeatebyteToolsEditor.Components
         /// <param name="index">The zero-based index of the UI audio clip to play. Must correspond to a valid UI audio element in the list.</param>
         /// <param name="loop">A value indicating whether the audio clip should loop. <see langword="true"/> to loop the clip; otherwise,
         /// <see langword="false"/>.</param>
-        public void PlayUI(int index, bool loop)
+        public void PlayUI(int index, bool loop = false)
         {
             if (audioList == null || audioList.audioElements.Count == 0 || audioSourceUI == null) { return; }
             AudioClip clip = audioList.audioElements.Where(x => x.category.ToString() == "UI").ElementAt(index).clip;
@@ -152,7 +157,7 @@ namespace BeatebyteToolsEditor.Components
         /// <param name="defaultName">The name of the audio clip to play. Must match the name of a UI category audio element.</param>
         /// <param name="loop">A value indicating whether the audio clip should loop. <see langword="true"/> to loop the clip; otherwise, <see
         /// langword="false"/>.</param>
-        public void PlayUI(string defaultName, bool loop)
+        public void PlayUI(string defaultName, bool loop = false)
         {
             if (audioList == null || audioList.audioElements.Count == 0 || audioSourceUI == null) { return; }
 
@@ -176,7 +181,7 @@ namespace BeatebyteToolsEditor.Components
         /// list.</param>
         /// <param name="loop">A value indicating whether the sound effect should loop. <see langword="true"/> to loop the sound effect;
         /// otherwise, <see langword="false"/>.</param>
-        public void PlayFX(int index, bool loop)
+        public void PlayFX(int index, bool loop = false)
         {
             if (audioList == null || audioList.audioElements.Count == 0 || audioSourceFX == null) { return; }
             AudioClip clip = audioList.audioElements.Where(x => x.category.ToString() == "FX").ElementAt(index).clip;
@@ -197,7 +202,7 @@ namespace BeatebyteToolsEditor.Components
         /// <param name="defaultName">The name of the sound effect to play. Must match the name of an audio element in the "FX" category.</param>
         /// <param name="loop">A value indicating whether the sound effect should loop. <see langword="true"/> to loop the sound effect;
         /// otherwise, <see langword="false"/>.</param>
-        public void PlayFX(string defaultName, bool loop)
+        public void PlayFX(string defaultName, bool loop = false)
         {
             if (audioList == null || audioList.audioElements.Count == 0 || audioSourceFX == null) { return; }
 
@@ -210,7 +215,32 @@ namespace BeatebyteToolsEditor.Components
                 audioSourceFX.Play();
             }
         }
+        public void PlayFXRandom(string defaultName, bool loop = false)
+        {
+            if (audioList == null || audioList.audioElements.Count == 0 || audioSourceFX == null) { return; }
 
+            AudioClip[] clips = audioList.audioElements.Where(x => x.category.ToString() == "FX" && x.name == defaultName).Select(x => x.clip).ToArray();
+
+            if (clips != null && clips.Length > 0)
+            {
+                audioSourceFX.loop = loop;
+                audioSourceFX.clip = clips[Random.Range(0, clips.Length)];
+                audioSourceFX.Play();
+            }
+        }
+        public void PlayOtherRandom(string defaultName, bool loop = false)
+        {
+            if (audioList == null || audioList.audioElements.Count == 0 || audioSourceFX == null) { return; }
+
+            AudioClip[] clips = audioList.audioElements.Where(x => x.category.ToString() == "Other" && x.name == defaultName).Select(x => x.clip).ToArray();
+
+            if (clips != null && clips.Length > 0)
+            {
+                audioSourceOther.loop = loop;
+                audioSourceOther.clip = clips[Random.Range(0, clips.Length)];
+                audioSourceOther.Play();
+            }
+        }
         /// <summary>
         /// Plays a music track from the audio list at the specified index.
         /// </summary>
@@ -220,7 +250,7 @@ namespace BeatebyteToolsEditor.Components
         /// <param name="index">The zero-based index of the music track to play. Must correspond to a valid music track in the audio list.</param>
         /// <param name="loop">A value indicating whether the music track should loop continuously.  <see langword="true"/> to loop the
         /// track; otherwise, <see langword="false"/>.</param>
-        public void PlayMusic(int index, bool loop)
+        public void PlayMusic(int index, bool loop = true)
         {
             if (audioList == null || audioList.audioElements.Count == 0 || audioSourceMusic == null) {return; }
 
@@ -243,7 +273,7 @@ namespace BeatebyteToolsEditor.Components
         /// <param name="defaultName">The name of the music track to play. Must match the name of an existing audio element in the music category.</param>
         /// <param name="loop">A value indicating whether the music track should loop continuously. <see langword="true"/> to loop the
         /// track; otherwise, <see langword="false"/>.</param>
-        public void PlayMusic(string defaultName, bool loop)
+        public void PlayMusic(string defaultName, bool loop = true)
         {
             if (audioList == null || audioList.audioElements.Count == 0 || audioSourceUI == null) { return; }
 
@@ -265,7 +295,7 @@ namespace BeatebyteToolsEditor.Components
         /// <param name="defaultName">The name of the audio clip to play. Must match the name of an audio clip in the "Other" category.</param>
         /// <param name="loop">A value indicating whether the audio clip should loop.  <see langword="true"/> to loop the clip; otherwise,
         /// <see langword="false"/>.</param>
-        public void PlayOther(string defaultName, bool loop)
+        public void PlayOther(string defaultName, bool loop = false)
         {
             if (audioList == null || audioList.audioElements.Count == 0 || audioSourceOther == null) { return; }
 
@@ -287,7 +317,7 @@ namespace BeatebyteToolsEditor.Components
         /// <param name="index">The zero-based index of the audio clip to play within the "Other" category.</param>
         /// <param name="loop">A value indicating whether the audio clip should loop.  <see langword="true"/> to loop the clip; otherwise,
         /// <see langword="false"/>.</param>
-        public void PlayOther(int index, bool loop)
+        public void PlayOther(int index, bool loop = false)
         {
             if (audioList == null || audioList.audioElements.Count == 0 || audioSourceOther == null) { return; }
             AudioClip clip = audioList.audioElements.Where(x => x.category.ToString() == "Other").ElementAt(index).clip;
@@ -310,6 +340,10 @@ namespace BeatebyteToolsEditor.Components
         /// effects, music, and other audio.</remarks>
         private void InitArray()
         {
+            if (mixer != null)
+            {
+                mixerGroups = mixer.FindMatchingGroups("");
+            }
             if (audioSources.Length == 0)
             {
                 int componentCount = transform.GetComponents<AudioSource>().Length;
@@ -333,6 +367,15 @@ namespace BeatebyteToolsEditor.Components
             audioSourceFX = audioSources[2];
             audioSourceMusic = audioSources[3];
             audioSourceOther = audioSources[4];
+
+            if (mixerGroups != null && mixerGroups.Length > 0)
+            {
+                audioSource.outputAudioMixerGroup = mixerGroups[0];
+                audioSourceFX.outputAudioMixerGroup = mixerGroups[1];
+                audioSourceUI.outputAudioMixerGroup = mixerGroups[2];
+                audioSourceMusic.outputAudioMixerGroup = mixerGroups[3];
+                audioSourceOther.outputAudioMixerGroup = mixerGroups[4];
+            }
         }
 
         private void Start()
